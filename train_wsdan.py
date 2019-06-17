@@ -23,11 +23,11 @@ from dataset import *
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch DML Training')
 
-    parser.add_argument('--j', help='number of data loading workers (default: 4)',
+    parser.add_argument('--workers', help='number of data loading workers (default: 4)',
                         default=4, type=int)
-    parser.add_argument('--e', help='number of epochs (default: 80)',
+    parser.add_argument('--epochs', help='number of epochs (default: 80)',
                         default=80, type=int)
-    parser.add_argument('--b', help='Batch_size (default: 16)',
+    parser.add_argument('--batch_size', help='Batch_size (default: 16)',
                         default=16, type=int)
     parser.add_argument('--ckpt', help='load checkpoint model (default: False)',
                         default=False)
@@ -41,6 +41,8 @@ def parse_args():
                         default=1, type=int)
     parser.add_argument('--verbose', help='show information frequency (default: 100)',
                         default=100, type=int)
+    parser.add_argument('--feature_map', help='feature extractor (default: resnet152)',
+                        default='resnet152', type=str)
     args = parser.parse_args()
     return args
 
@@ -83,8 +85,12 @@ def main():
 
     # feature_net = inception_v3(pretrained=True)
     # feature_net = resnet152_cbam(pretrained=True)
-    feature_net = resnet152(pretrained=True)
-
+    if parser.feature_map == 'resnet152':
+        feature_net = resnet152(pretrained=True)
+    elif parser.feature_map == 'inception_v3':
+        feature_net = inception_v3(pretrained=True)
+    elif parser.feature_map == 'resnet152_cbam':
+        feature_net = resnet152_cbam(pretrained=True)
 
     net = WSDAN(num_classes=num_classes, M=num_attentions, net=feature_net)
 
@@ -94,7 +100,7 @@ def main():
     if parser.ckpt:
         ckpt = parser.ckpt
 
-        if parser.initial_training == 0:
+        if parser.init == 0:
             # Get Name (epoch)
             epoch_name = (ckpt.split('/')[-1]).split('.')[0]
             start_epoch = int(epoch_name)
