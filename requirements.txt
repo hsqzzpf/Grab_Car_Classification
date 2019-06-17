@@ -23,7 +23,7 @@ MarkupSafe==1.1.1
 matplotlib==3.0.3
 mistune==0.8.4
 mkl-fft==1.0.6
-mkl-random==1.0.2
+mkl-random==1.0.1
 nbconvert==5.5.0
 nbformat==4.4.0
 notebook==5.7.8
