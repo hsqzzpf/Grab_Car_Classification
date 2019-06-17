@@ -93,7 +93,7 @@ class CarDataset(Dataset):
                 print('Files already downloaded and verified')
                 return
 
-        if os.path.exists(self.root):
+        if not os.path.exists(self.root):
             os.makedirs(self.root)
 
         car_url = 'http://imagenet.stanford.edu/internal/car196/'
