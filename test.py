@@ -1,20 +1,24 @@
-import time
+
+import os
+import tarfile
+from os.path import join
+from scipy.io import loadmat
+from PIL import Image
+
 import torch
-from dataset import CustomDataset, TestDataSet
 import torchvision.transforms as transforms
 import torch.nn.functional as F
-import numpy as np
-from utils import accuracy
-import os
 from torch.utils.data import DataLoader
-from PIL import Image
-import tarfile
-from scipy.io import loadmat
 from torchvision.datasets.utils import download_url, list_dir, list_files
-from os.path import join
+
+from dataset import TestDataSet
 
 
 def download_test_folder():
+    """
+    Automatically download the testing dataset and annos file
+
+    """
 
     if os.path.exists('Dataset/cars_test') and os.path.exists('Dataset/cars_test_annos_withlabels.mat'):
         if len(os.listdir('Dataset/cars_test')) == len(
@@ -49,11 +53,6 @@ def classifier(img_addr, net, boundary=None):
     theta_c = 0.5
     crop_size = (256, 256)  # size of cropped images for 'See Better'
 
-    # metrics initialization
-    batches = 0
-    epoch_loss = 0
-    epoch_acc = np.array([0, 0, 0], dtype='float')  # top - 1, 3, 5
-
     input_img = Image.open(img_addr).convert('RGB')
 
     transform = transforms.Compose([
@@ -69,19 +68,9 @@ def classifier(img_addr, net, boundary=None):
     input_img = torch.unsqueeze(input_img, 0)
     X = input_img
     X = X.to(torch.device("cuda"))
-    #
-    # print(type(X))
-    # print(X.shape)
 
-    ##################################
-    # Raw Image
-    ##################################
     y_pred_raw, feature_matrix, attention_map = net(X)
 
-    ##################################
-    # Object Localization and Refinement
-    ##################################
-    # crop_mask = F.upsample_bilinear(attention_map, size=(X.size(2), X.size(3))) > theta_c
     crop_mask = F.interpolate(attention_map, size=(X.size(2), X.size(3))) > theta_c
     crop_images = []
     for batch_index in range(crop_mask.size(0)):
@@ -96,7 +85,6 @@ def classifier(img_addr, net, boundary=None):
 
     y_pred_crop, _, _ = net(crop_images)
 
-    # final prediction
     y_pred = (y_pred_raw + y_pred_crop) / 2
 
     _, pred_idx = y_pred[0].topk(1, 0, True, True)
@@ -109,17 +97,45 @@ def classifier(img_addr, net, boundary=None):
     return y_pred, confidence_score
 
 
+def test_sample(annos_file, predict_text):
+
+    """
+    A sample function that shows how to use classifier() function
+    Note: if the testing dataset annos file is not in the same format as the
+    annos file provided by Stanford Cars dataset, you need to write your own
+    test function
+
+    :param annos_file: annos file address (string)
+    :param predict_text: output txt file address (string)
+    :return: None (output a txt file that can be verified on ImageNet server)
+    """
+
+    annos = loadmat(annos_file)['annotations'][0]
+
+    net = torch.load('trained_models/resnet152_94.pkl')
+
+    with open(predict_text, 'w') as file:
+        for item in annos:
+            boxes = [item[0][0][0], item[1][0][0], item[2][0][0], item[3][0][0]]
+            filenames = join('Dataset', 'cars_test', item[5][0])
+
+            y_pred, _ = classifier(filenames, net, boundary=boxes)
+            file.write(str(y_pred) + '\n')
+
+
 def test(data_loader, txtfile):
+    """
+    A much faster function than test_sample() running on the whole Stanford Cars testing dataset
+
+    :param data_loader: dataloader that contains test dataset (Without shaffle)
+    :param txtfile: output text file address
+    :return: None (output a txt file that can be verified by ImageNet server)
+    """
 
     net = torch.load('trained_models/resnet152_94.pkl')
 
     theta_c = 0.5
     crop_size = (256, 256)  # size of cropped images for 'See Better'
-
-    # metrics initialization
-    batches = 0
-    epoch_loss = 0
-    epoch_acc = np.array([0, 0, 0], dtype='float')  # top - 1, 3, 5
 
     net.eval()
 
@@ -160,33 +176,19 @@ def test(data_loader, txtfile):
 
                 for y in y_pred:
                     _, pred_idx = y.topk(1, 0, True, True)
-                    file.write(str(pred_idx.item()+1) + ' ')
+                    file.write(str(pred_idx.item() + 1) + ' ')
 
                     s = torch.nn.Softmax(dim=0)
                     confidence_score = max(s(y)).item()
                     file.write(str(confidence_score) + '\n')
 
 
-def test_sample(annos_file, predict_text):
-    annos = loadmat(annos_file)['annotations'][0]
-
-    net = torch.load('trained_models/resnet152_94.pkl')
-
-    with open(predict_text, 'w') as file:
-        for item in annos:
-            boxes = [item[0][0][0], item[1][0][0], item[2][0][0], item[3][0][0]]
-            filenames = join('Dataset', 'cars_test', item[5][0])
-
-            y_pred, _ = classifier(filenames, net, boundary=boxes)
-            file.write(str(y_pred) + '\n')
-
-
 if __name__ == '__main__':
 
-    testset = TestDataSet('./Dataset', cropped=True)
-
-    test_loader = DataLoader(testset, 64, shuffle=False)
-
     download_test_folder()
+
+    # testset = TestDataSet('./Dataset', cropped=True)
+    # test_loader = DataLoader(testset, 64, shuffle=False)
     # test(test_loader, 'predict.txt')
+
     test_sample('Dataset/cars_test_annos_withlabels.mat', 'pred.txt')
