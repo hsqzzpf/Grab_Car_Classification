@@ -14,20 +14,11 @@ Main idea of the method: Data augmentation is a good way to prevent overfitting 
 
 ## 3. Result
 
-- By implementing the ideas described in above, I got 94.04% on the testing dataset. Here is the screenshot of the result and link. [http://imagenet.stanford.edu/internal/car196/submission/submission?p=27fe7e8d66d343cd755e19c3a4fc547c]
+- By implementing the ideas described in above, I got 94.04% on the testing dataset. Here is the link. [http://imagenet.stanford.edu/internal/car196/submission/submission?p=27fe7e8d66d343cd755e19c3a4fc547c]
 
 **Note: the email address I used to register Grab AI challenge and the email address I used to verify my anwser on ImageNet Server are the same**
 
 ## 4. Usage
-This code repo contains WS-DAN with feature extractors including VGG19, ResNet, and Inception_v3 in PyTorch form. The default feature extractor is Resnet152, and this can be modified conveniently in ```train_wsdan.py```: 
-
-```python
-# feature_net = vgg19_bn(pretrained=True)
-# feature_net = resnet101(pretrained=True)
-feature_net = inception_v3(pretrained=True)
-
-net = WSDAN(num_classes=num_classes, M=num_attentions, net=feature_net)
-```
 
 
 1. ``` git clone https://github.com/WangTianduo/Grab_Car_Classification.git ``` Use the command to clone the repo to local
