@@ -23,19 +23,19 @@ from dataset import *
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch DML Training')
 
-    parser.add_argument('--workers', help='number of data loading workers (default: 4)',
+    parser.add_argument('--j', help='number of data loading workers (default: 4)',
                         default=4, type=int)
-    parser.add_argument('--epochs', help='number of epochs (default: 80)',
+    parser.add_argument('--e', help='number of epochs (default: 80)',
                         default=80, type=int)
-    parser.add_argument('--batch_size', help='Batch_size (default: 16)',
+    parser.add_argument('--b', help='Batch_size (default: 16)',
                         default=16, type=int)
-    parser.add_argument('--ckpt', help='load checkpoint model (default: False)',
+    parser.add_argument('--c', help='load checkpoint model (default: False)',
                         default=False)
-    parser.add_argument('--learning_rate', help='Learning Rate (default: 0.001)',
+    parser.add_argument('--lr', help='Learning Rate (default: 0.001)',
                         default=0.001, type=float)
-    parser.add_argument('--save_freq', help='saving frequency of models (default: 1)',
+    parser.add_argument('--sf', help='saving frequency of models (default: 1)',
                         default=1, type=int)
-    parser.add_argument('--save_dir', help='saving directory of models (default: ./models)',
+    parser.add_argument('--sd', help='saving directory of models (default: ./models)',
                         default='./models', type=str)
     parser.add_argument('--init', help='training from beginning-1 or resume training-0 (default: 1)',
                         default=1, type=int)
