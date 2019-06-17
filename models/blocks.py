@@ -11,6 +11,8 @@ __all__ = ['CBAMLayer', 'SPPLayer']
     ECCV 2018,
     arXiv:1807.06521
 '''
+
+
 class CBAMLayer(nn.Module):
     def __init__(self, channel, reduction=16, spatial_kernel=7):
         super(CBAMLayer, self).__init__()
@@ -47,6 +49,8 @@ class CBAMLayer(nn.Module):
     TPAMI 2015,
     arXiv:1406.4729
 '''
+
+
 class SPPLayer(nn.Module):
     def __init__(self, pool_size, pool=nn.MaxPool2d):
         super(SPPLayer, self).__init__()

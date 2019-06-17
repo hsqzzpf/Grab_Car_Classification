@@ -1,9 +1,10 @@
 import math
-import torch
+import logging
+
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
+
 from models.blocks import SPPLayer
-import logging
 
 
 __all__ = ['vgg19_bn', 'vgg19']

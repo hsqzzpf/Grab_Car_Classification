@@ -6,46 +6,67 @@ import logging
 import warnings
 import copy
 import numpy as np
+import argparse
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from optparse import OptionParser
 
 from utils import accuracy
 from models import *
 from dataset import *
 
-# from TaxaLearning.load import load_datasets, load_animals
-# from StanfordDogs.data.load import load_datasets
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='PyTorch DML Training')
+
+    parser.add_argument('--workers', help='number of data loading workers (default: 4)',
+                        default=4, type=int)
+    parser.add_argument('--epochs', help='number of epochs (default: 80)',
+                        default=80, type=int)
+    parser.add_argument('--batch_size', help='Batch_size (default: 16)',
+                        default=16, type=int)
+    parser.add_argument('--ckpt', help='load checkpoint model (default: False)',
+                        default=False)
+    parser.add_argument('--learning_rate', help='Learning Rate (default: 0.001)',
+                        default=0.001, type=float)
+    parser.add_argument('--save_freq', help='saving frequency of models (default: 1)',
+                        default=1, type=int)
+    parser.add_argument('--save_dir', help='saving directory of models (default: ./models)',
+                        default='./models', type=str)
+    parser.add_argument('--init', help='training from beginning-1 or resume training-0 (default: 1)',
+                        default=1, type=int)
+    args = parser.parse_args()
+    return args
 
 
 def main():
-    parser = OptionParser()
-    parser.add_option('-j', '--workers', dest='workers', default=4, type='int',
-                      help='number of data loading workers (default: 4)')
-    parser.add_option('-e', '--epochs', dest='epochs', default=80, type='int',
-                      help='number of epochs (default: 80)')
-    parser.add_option('-b', '--batch-size', dest='batch_size', default=16, type='int',
-                      help='batch size (default: 16)')
-    parser.add_option('-c', '--ckpt', dest='ckpt', default=False,
-                      help='load checkpoint model (default: False)')
-    parser.add_option('-v', '--verbose', dest='verbose', default=100, type='int',
-                      help='show information for each <verbose> iterations (default: 100)')
-
-    parser.add_option('--lr', '--learning-rate', dest='lr', default=1e-3, type='float',
-                      help='learning rate (default: 1e-3)')
-    parser.add_option('--sf', '--save-freq', dest='save_freq', default=1, type='int',
-                      help='saving frequency of .ckpt models (default: 1)')
-    parser.add_option('--sd', '--save-dir', dest='save_dir', default='./models',
-                      help='saving directory of .ckpt models (default: ./models)')
-    parser.add_option('--init', '--initial-training', dest='initial_training', default=1, type='int',
-                      help='train from 1-beginning or 0-resume training (default: 1)')
-    parser.add_option('--feature_map', '--feature_map', dest='feature_map', default='Inception', type='string',
-                      help='use which model as feature map')
-
-    (options, args) = parser.parse_args()
+    # parser = OptionParser()
+    parser = parse_args()
+    # parser.add_option('-j', '--workers', dest='workers', default=4, type='int',
+    #                   help='number of data loading workers (default: 4)')
+    # parser.add_option('-e', '--epochs', dest='epochs', default=80, type='int',
+    #                   help='number of epochs (default: 80)')
+    # parser.add_option('-b', '--batch-size', dest='batch_size', default=16, type='int',
+    #                   help='batch size (default: 16)')
+    # parser.add_option('-c', '--ckpt', dest='ckpt', default=False,
+    #                   help='load checkpoint model (default: False)')
+    # parser.add_option('-v', '--verbose', dest='verbose', default=100, type='int',
+    #                   help='show information for each <verbose> iterations (default: 100)')
+    #
+    # parser.add_option('--lr', '--learning-rate', dest='lr', default=1e-3, type='float',
+    #                   help='learning rate (default: 1e-3)')
+    # parser.add_option('--sf', '--save-freq', dest='save_freq', default=1, type='int',
+    #                   help='saving frequency of .ckpt models (default: 1)')
+    # parser.add_option('--sd', '--save-dir', dest='save_dir', default='./models',
+    #                   help='saving directory of .ckpt models (default: ./models)')
+    # parser.add_option('--init', '--initial-training', dest='initial_training', default=1, type='int',
+    #                   help='train from 1-beginning or 0-resume training (default: 1)')
+    #
+    # (options, args) = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s: %(levelname)s: [%(filename)s:%(lineno)d]: %(message)s', level=logging.INFO)
     warnings.filterwarnings("ignore")
@@ -58,25 +79,20 @@ def main():
     num_attentions = 32
     start_epoch = 0
 
-    if options.feature_map == 'Inception_v3':
-        feature_net = inception_v3(pretrained=True)
-    elif options.feature_map == 'resnet152_cbm':
-        feature_net = resnet152_cbam(pretrained=True)
-    elif option.feature_map == 'resnet152':
-        feature_net = resnet152(pretrained=True)
-    else:
-        print('wrong model name')
-        return
+    # feature_net = inception_v3(pretrained=True)
+    # feature_net = resnet152_cbam(pretrained=True)
+    feature_net = resnet152(pretrained=True)
+
 
     net = WSDAN(num_classes=num_classes, M=num_attentions, net=feature_net)
 
     # feature_center: size of (#classes, #attention_maps, #channel_features)
     feature_center = torch.zeros(num_classes, num_attentions, net.num_features * net.expansion).to(torch.device("cuda"))
 
-    if options.ckpt:
-        ckpt = options.ckpt
+    if parser.ckpt:
+        ckpt = parser.ckpt
 
-        if options.initial_training == 0:
+        if parser.initial_training == 0:
             # Get Name (epoch)
             epoch_name = (ckpt.split('/')[-1]).split('.')[0]
             start_epoch = int(epoch_name)
@@ -87,17 +103,17 @@ def main():
 
         # Load weights
         net.load_state_dict(state_dict)
-        logging.info('Network loaded from {}'.format(options.ckpt))
+        logging.info('Network loaded from {}'.format(parser.ckpt))
 
         # load feature center
         if 'feature_center' in checkpoint:
             feature_center = checkpoint['feature_center'].to(torch.device("cuda"))
-            logging.info('feature_center loaded from {}'.format(options.ckpt))
+            logging.info('feature_center loaded from {}'.format(parser.ckpt))
 
     ##################################
     # Initialize saving directory
     ##################################
-    save_dir = options.save_dir
+    save_dir = parser.save_dir
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -111,15 +127,15 @@ def main():
     ##################################
     # Load dataset
     ##################################
-    train_dataset, validate_dataset = CustomDataset(root='./Dataset', train=True, cropped=True, shape=image_size), \
-                                      CustomDataset(root='./Dataset', train=False, cropped=True, shape=image_size)
+    train_dataset, validate_dataset = CarDataset(root='./Dataset', train=True, cropped=True, shape=image_size), \
+                                      CarDataset(root='./Dataset', train=False, cropped=True, shape=image_size)
 
-    train_loader, validate_loader = DataLoader(train_dataset, batch_size=options.batch_size, shuffle=True,
-                                               num_workers=options.workers, pin_memory=True), \
-                                    DataLoader(validate_dataset, batch_size=options.batch_size * 4, shuffle=True,
-                                               num_workers=options.workers, pin_memory=True)
+    train_loader, validate_loader = DataLoader(train_dataset, batch_size=parser.batch_size, shuffle=True,
+                                               num_workers=parser.workers, pin_memory=True), \
+                                    DataLoader(validate_dataset, batch_size=parser.batch_size * 4, shuffle=True,
+                                               num_workers=parser.workers, pin_memory=True)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=options.lr, momentum=0.9, weight_decay=0.00001)
+    optimizer = torch.optim.SGD(net.parameters(), lr=parser.lr, momentum=0.9, weight_decay=0.00001)
     loss = nn.CrossEntropyLoss()
 
     ##################################
@@ -132,24 +148,24 @@ def main():
     ##################################
     logging.info('')
     logging.info('Start training: Total epochs: {}, Batch size: {}, Training size: {}, Validation size: {}'.
-                 format(options.epochs, options.batch_size, len(train_dataset), len(validate_dataset)))
+                 format(parser.epochs, parser.batch_size, len(train_dataset), len(validate_dataset)))
 
     best_accuracy = 0.0
     best_model_wts = copy.deepcopy(net.state_dict())
-    for epoch in range(start_epoch, options.epochs):
+    for epoch in range(start_epoch, parser.epochs):
         train(epoch=epoch,
               data_loader=train_loader,
               net=net,
               feature_center=feature_center,
               loss=loss,
               optimizer=optimizer,
-              save_freq=options.save_freq,
-              save_dir=options.save_dir,
-              verbose=options.verbose)
+              save_freq=parser.save_freq,
+              save_dir=parser.save_dir,
+              verbose=parser.verbose)
         val_loss, top1_acc = validate(data_loader=validate_loader,
                                       net=net,
                                       loss=loss,
-                                      verbose=options.verbose)
+                                      verbose=parser.verbose)
 
         if top1_acc > best_accuracy:
             best_accuracy = top1_acc
@@ -163,7 +179,7 @@ def main():
 
     if not os.path.exists('trained_models'):
         os.makedirs('trained_models')
-    name = options.feature_map + '_' + str(best_accuracy.item())
+    name = parser.feature_map + '_' + str(best_accuracy.item())
     torch.save(net, '/' + name + '.pkl')
 
 

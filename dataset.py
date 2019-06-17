@@ -1,30 +1,14 @@
+import os
+from os.path import join
+from scipy.io import loadmat
+
 from PIL import Image
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url, list_dir, list_files
 
-from scipy.io import loadmat
-from os.path import join
 
-import os
-
-
-class CustomDataset(Dataset):
-
-    """
-    # Description:
-        Basic class for retrieving images and labels
-
-    # Member Functions:
-        __init__(self, phase, shape):   initializes a dataset
-            phase:                      a string in ['train', 'val', 'test']
-            shape:                      output shape/size of an image
-
-        __getitem__(self, item):        returns an image
-            item:                       the idex of image in the whole dataset
-
-        __len__(self):                  returns the length of dataset
-    """
+class CarDataset(Dataset):
 
     def __init__(self,
                  root,

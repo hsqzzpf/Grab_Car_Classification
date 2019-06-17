@@ -5,11 +5,10 @@ Hu et al.,
 "See Better Before Looking Closer: Weakly Supervised Data Augmentation Network for Fine-Grained Visual Classification",
 arXiv:1901.09891
 
-Created: May 04,2019 - Yuchong Gu
-Revised: May 07,2019 - Yuchong Gu
 """
 import logging
 import numpy as np
+
 import torch
 import torch.nn as nn
 
@@ -128,23 +127,3 @@ class WSDAN(nn.Module):
         model_dict.update(pretrained_dict)
         super(WSDAN, self).load_state_dict(model_dict)
 
-
-# if __name__ == '__main__':
-#     net = WSDAN(num_classes=1000)
-#     net.train()
-#
-#     for i in range(10):
-#         input_test = torch.randn(10, 3, 512, 512)
-#         p, feature_matrix, attention_map = net(input_test)
-#
-#     print(p.shape)
-#     print(feature_matrix.shape)
-#     print(attention_map.shape)
-#
-#     net.eval()
-#     input_test = torch.randn(10, 3, 512, 352)
-#     p, feature_matrix, attention_map = net(input_test)
-#
-#     print(p.shape)
-#     print(feature_matrix.shape)
-#     print(attention_map.shape)
