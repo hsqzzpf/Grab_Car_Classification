@@ -29,16 +29,18 @@ def parse_args():
                         default=80, type=int)
     parser.add_argument('--b', help='Batch_size (default: 16)',
                         default=16, type=int)
-    parser.add_argument('--c', help='load checkpoint model (default: False)',
+    parser.add_argument('--ckpt', help='load checkpoint model (default: False)',
                         default=False)
     parser.add_argument('--lr', help='Learning Rate (default: 0.001)',
                         default=0.001, type=float)
-    parser.add_argument('--sf', help='saving frequency of models (default: 1)',
+    parser.add_argument('--save_freq', help='saving frequency of models (default: 1)',
                         default=1, type=int)
-    parser.add_argument('--sd', help='saving directory of models (default: ./models)',
+    parser.add_argument('--save_dir', help='saving directory of models (default: ./models)',
                         default='./models', type=str)
     parser.add_argument('--init', help='training from beginning-1 or resume training-0 (default: 1)',
                         default=1, type=int)
+    parser.add_argument('--verbose', help='show information frequency (default: 100)',
+                        default=100, type=int)
     args = parser.parse_args()
     return args
 
