@@ -1,3 +1,4 @@
 Dataset
 __pycache__
 .idea/
+models/*.ckpt
