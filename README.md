@@ -16,7 +16,8 @@ Main idea of the method: Data augmentation is a good way to prevent overfitting 
 ## 3. Result
 - In the paper, the author got an accuracy of 94.5% on Stanford Cars testing dataset.
 - Following the ideas and implementation details mentioned in the paper, I got 94.04% on the same testing dataset. Here is the screenshot of the result and link. [http://imagenet.stanford.edu/internal/car196/submission/submission?p=27fe7e8d66d343cd755e19c3a4fc547c]
-**Note: the email address I used to register Grab AI challenge and the email address I used to verify my anwser on ImageNet Server is the same**
+
+**Note: the email address I used to register Grab AI challenge and the email address I used to verify my anwser on ImageNet Server are the same**
 
 ## 4. Usage
 This code repo contains WS-DAN with feature extractors including VGG19, ResNet, and Inception_v3 in PyTorch form. The default feature extractor is Resnet152, and this can be modified conveniently in ```train_wsdan.py```: 
@@ -31,6 +32,8 @@ net = WSDAN(num_classes=num_classes, M=num_attentions, net=feature_net)
 
 1. ``` git clone https://github.com/WangTianduo/Grab_Car_Classification.git ``` Use the command to clone the repo to local
 2. Well-trained models are in the ```trained_mdoels``` folder
-3. There is no need to prepare the dataset by youselves since the automatic downloading function has been integrated in the dataset.py
-4. To train the model by yourself, simply run ```$ python3 train_wsdan.py -j <num_workers> -b <batch_size> --sd <save_ckpt_directory> (etc.) 1>log.txt 2>&1 &``` (see ```train_wsdan.py``` for more training options) After running the script, the well_trained model will be stored in 	```trained_models``` folder. The name of the model file will the combination of feature extractor and the best accuracy
-5. If you want to use the model that provided in the repo, use the method classifier() defined in test.py (A sample of how to use this method has also been provided)
+3. There is no need to prepare the dataset manually since the automatic downloading function has been integrated in the dataset.py
+4. To train the model by yourself, simply run 
+```$ python3 train_wsdan.py -j <num_workers> -b <batch_size> --sd <save_ckpt_directory> (etc.) 1>log.txt 2>&1 &``` (see ```train_wsdan.py``` for more training options) 
+After running the script, the well_trained model will be stored in 	```trained_models``` folder. The name of the model file will the combination of feature extractor and the best accuracy
+5. If you want to use the model that provided in the repo, use the method ```classifier()``` defined in ```test.py``` (A sample of how to use this method has also been provided)
